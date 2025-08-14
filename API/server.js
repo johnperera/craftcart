@@ -8,31 +8,39 @@ import { verifyToken } from "./utils/auth.js";
 import fs from "fs";
 import path from "path";
 import multer from "multer";
-import cors from "cors";
 
-// Verify environment variables are loaded
+// Verify environment variables
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
 console.log("JWT_SECRET:", process.env.JWT_SECRET ? "***" : "Not set");
 
 async function startServer() {
   const app = express();
-  app.use(
-    cors({
-      origin: ['http://localhost:3999', 'https://studio.apollographql.com'], // frontend URL
-      credentials: true,
-    })
-  );
-  // Ensure uploads directory exists
-  const uploadsDir = path.join(process.cwd(), "API", "uploads");
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
 
-  // Multer setup for file uploads
+  // ---------- CORS for normal Express routes ----------
+  const allowedOrigins = [
+    "http://localhost:3999",
+    "https://strong-monstera-455155.netlify.app",
+    "https://studio.apollographql.com",
+  ];
+
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (!origin || allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin || "*");
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+      res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    }
+    if (req.method === "OPTIONS") return res.sendStatus(200);
+    next();
+  });
+
+  // ---------- File uploads ----------
+  const uploadsDir = path.join(process.cwd(), "API", "uploads");
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
   const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, uploadsDir);
-    },
+    destination: (req, file, cb) => cb(null, uploadsDir),
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       const ext = path.extname(file.originalname);
@@ -41,20 +49,15 @@ async function startServer() {
   });
   const upload = multer({ storage });
 
-  // Serve uploads directory as static files
   app.use("/uploads", express.static(uploadsDir));
 
-  // Image upload endpoint
   app.post("/upload", upload.single("image"), (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-    // Return the URL to access the uploaded image
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
     const fileUrl = `/uploads/${req.file.filename}`;
     res.json({ url: fileUrl });
   });
 
-  // Database Connection with error handling
+  // ---------- Database ----------
   try {
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
@@ -67,7 +70,7 @@ async function startServer() {
     process.exit(1);
   }
 
-  // Apollo Server setup
+  // ---------- Apollo Server ----------
   const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -79,13 +82,31 @@ async function startServer() {
   });
 
   await server.start();
-  server.applyMiddleware({ app });
 
+  server.applyMiddleware({
+    app,
+    cors: {
+      origin: (origin, callback) => {
+        // Allow requests with no origin (Postman, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        callback(new Error("Not allowed by CORS: " + origin));
+      },
+      credentials: true,
+    },
+  });
+
+  // ---------- SPA fallback ----------
+  const publicDir = path.join(process.cwd(), "public");
+  app.use(express.static(publicDir));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+
+  // ---------- Start server ----------
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
-    console.log(
-      `🚀 Server running at http://localhost:${PORT}${server.graphqlPath}`
-    );
+    console.log(`🚀 Server running at http://localhost:${PORT}${server.graphqlPath}`);
   });
 }
 

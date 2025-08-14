@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js",
+    "start": "nodemon main.js",
     "compile": "npx webpack --mode production",
     "watch": "webpack --watch --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
