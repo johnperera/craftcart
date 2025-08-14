@@ -6,7 +6,7 @@
     "start": "nodemon main.js",
     "##compile": "babel jsx --presets @babel/react --out-dir public",
     "##watch": "babel jsx --presets @babel/react --out-dir public --watch --verbose",
-    "compile": "webpack -mode production",
+    "compile": "webpack --mode production",
     "watch": "webpack -w --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
