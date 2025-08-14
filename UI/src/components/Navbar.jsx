@@ -22,6 +22,7 @@ import AdminCategories from "../pages/admin/AdminCategories";
 import AdminUsers from "../pages/admin/AdminUsers";
 import Checkout from "../pages/Checkout";
 import OrderSuccess from "../pages/OrderSuccess";
+import AdminOrders from "../pages/admin/AdminOrders";
 
 const NotFound = () => <h1>404 - Page Not Found</h1>;
 
@@ -130,6 +131,7 @@ export function NavPage() {
             <Route path="products" element={<AdminProducts />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="orders" element={<AdminOrders />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

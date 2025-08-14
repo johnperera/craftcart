@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 export default function Checkout() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
@@ -14,7 +15,7 @@ export default function Checkout() {
 
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true); // Start in loading state
+  const [loading, setLoading] = useState(true);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [validationErrors, setValidationErrors] = useState({});
@@ -36,7 +37,7 @@ export default function Checkout() {
     return json.data;
   };
 
-  // Fetch cart from backend (GraphQL)
+  // Fetch cart from backend
   useEffect(() => {
     const fetchCart = async () => {
       const query = `
@@ -79,13 +80,9 @@ export default function Checkout() {
     fetchCart();
   }, []);
 
-  // Canadian postal code regex: A1A 1A1 or A1A1A1
+  // Validation regex
   const postalCodeRegex = /^[A-Za-z]\d[A-Za-z][ -]?\d[A-Za-z]\d$/;
-
-  // Expiry MM/YY regex, basic validation
   const expiryRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
-
-  // CVV 3 or 4 digits
   const cvvRegex = /^\d{3,4}$/;
 
   const validateForm = () => {
@@ -110,8 +107,7 @@ export default function Checkout() {
     else if (!expiryRegex.test(form.expiry.trim()))
       errors.expiry = "Expiry must be in MM/YY format.";
 
-    if (!form.cvv.trim())
-      errors.cvv = "CVV is required.";
+    if (!form.cvv.trim()) errors.cvv = "CVV is required.";
     else if (!cvvRegex.test(form.cvv.trim()))
       errors.cvv = "CVV must be 3 or 4 digits.";
 
@@ -129,24 +125,67 @@ export default function Checkout() {
       return;
     }
 
+    if (cartItems.length === 0) {
+      setErrorMsg("Your cart is empty.");
+      return;
+    }
+
     setLoading(true);
 
+    // Build order items for mutation
+    const orderItems = cartItems.map((item) => ({
+      product: item.id,
+      quantity: item.quantity,
+    }));
 
-    /*
-    const mutation = `...`;
-    const variables = {...};
+    const createOrderMutation = `
+      mutation CreateOrder($items: [OrderItemInput]!) {
+        createOrder(items: $items) {
+          id
+          status
+          total
+          items {
+            product {
+              id
+              name
+              price
+            }
+            quantity
+            priceAtPurchase
+          }
+          createdAt
+          updatedAt
+          buyer {
+            id
+            name
+            email
+          }
+        }
+      }
+    `;
+
+    const clearCartMutation = `
+      mutation {
+        clearCart
+      }
+    `;
+
     try {
-      const data = await sendGraphQLRequest(mutation, variables);
-      setSuccessMsg(`Order placed! Order ID: ${data.placeOrder.id}`);
-      // Clear cart, redirect, etc.
+      // Create order
+      const data = await sendGraphQLRequest(createOrderMutation, {
+        items: orderItems,
+      });
+
+      // Clear cart
+      await sendGraphQLRequest(clearCartMutation);
+
+      setSuccessMsg(`Order placed! Order ID: ${data.createOrder.id}`);
+      navigate("/orderSuccess");
     } catch (err) {
       setErrorMsg("Failed to place order: " + err.message);
     } finally {
       setLoading(false);
     }
-    */
-    // setLoading(false);
-    navigate("/orderSuccess");
   };
 
   const handleChange = (e) => {
@@ -169,7 +208,6 @@ export default function Checkout() {
       {errorMsg && <p style={{ color: "red" }}>{errorMsg}</p>}
       {loading && <p>Loading cart...</p>}
 
-      {/* Cart Summary */}
       {!loading && (
         <div
           style={{
@@ -213,9 +251,7 @@ export default function Checkout() {
           }}
         />
         {validationErrors.fullName && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.fullName}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.fullName}</p>
         )}
 
         <input
@@ -232,9 +268,7 @@ export default function Checkout() {
           }}
         />
         {validationErrors.address && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.address}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.address}</p>
         )}
 
         <input
@@ -251,9 +285,7 @@ export default function Checkout() {
           }}
         />
         {validationErrors.city && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.city}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.city}</p>
         )}
 
         <input
@@ -270,9 +302,7 @@ export default function Checkout() {
           }}
         />
         {validationErrors.postalCode && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.postalCode}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.postalCode}</p>
         )}
 
         <h4>Payment Details</h4>
@@ -293,9 +323,7 @@ export default function Checkout() {
           pattern="\d*"
         />
         {validationErrors.cardNumber && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.cardNumber}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.cardNumber}</p>
         )}
 
         <input
@@ -315,9 +343,7 @@ export default function Checkout() {
           pattern="(0[1-9]|1[0-2])\/\d{2}"
         />
         {validationErrors.expiry && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.expiry}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.expiry}</p>
         )}
 
         <input
@@ -337,9 +363,7 @@ export default function Checkout() {
           pattern="\d*"
         />
         {validationErrors.cvv && (
-          <p style={{ color: "red", marginTop: -6, marginBottom: 8 }}>
-            {validationErrors.cvv}
-          </p>
+          <p style={{ color: "red" }}>{validationErrors.cvv}</p>
         )}
 
         <button
@@ -351,7 +375,8 @@ export default function Checkout() {
             padding: "12px 20px",
             border: "none",
             borderRadius: "4px",
-            cursor: loading || cartItems.length === 0 ? "not-allowed" : "pointer",
+            cursor:
+              loading || cartItems.length === 0 ? "not-allowed" : "pointer",
             width: "100%",
           }}
         >

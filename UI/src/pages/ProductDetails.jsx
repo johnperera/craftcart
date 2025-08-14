@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+
 const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
 const IMAGE_URL = "http://localhost:4000";
 
@@ -7,6 +8,7 @@ const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
@@ -22,6 +24,7 @@ const ProductDetails = () => {
             quantity
             images
             category {
+              id,
               name
             }
             artisan {
@@ -46,11 +49,55 @@ const ProductDetails = () => {
         });
 
         const result = await response.json();
-        setProduct(result.data?.product || null);
+        const currentProduct = result.data?.product || null;
+        setProduct(currentProduct);
+
+        // Fetch related products using categoryId
+        if (currentProduct?.category?.id) {
+          fetchRelatedProducts(currentProduct.category.id, currentProduct.id);
+        }
       } catch (error) {
         console.error("Error fetching product:", error);
       } finally {
         setLoading(false);
+      }
+    };
+
+    const fetchRelatedProducts = async (categoryId, excludeId) => {
+      const query = `
+        query Products($filter: ProductFilter) {
+          products(filter: $filter) {
+            id
+            name
+            description
+            price
+            quantity
+            images
+            category { name }
+            artisan { name }
+            createdAt
+            updatedAt
+          }
+        }
+      `;
+
+      const variables = { filter: { categoryId } };
+
+      try {
+        const response = await fetch(GRAPHQL_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, variables }),
+        });
+
+        const result = await response.json();
+        // Exclude current product and limit to 4 items
+        const related = result.data.products
+          .filter((p) => p.id !== excludeId)
+          .slice(0, 4);
+        setRelatedProducts(related);
+      } catch (error) {
+        console.error("Error fetching related products:", error);
       }
     };
 
@@ -95,7 +142,6 @@ const ProductDetails = () => {
         alert(result.errors[0].message);
       } else {
         alert("Product added to cart!");
-        // Optionally navigate('/cart');
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
@@ -200,6 +246,51 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Related Products */}
+      {relatedProducts.length > 0 && (
+        <div style={{ marginTop: "40px" }}>
+          <h3 style={{ marginBottom: "20px" }}>Related Products</h3>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: "20px",
+            }}
+          >
+            {relatedProducts.map((p) => (
+              <div
+                key={p.id}
+                style={{
+                  border: "1px solid #eee",
+                  borderRadius: "8px",
+                  padding: "10px",
+                  cursor: "pointer",
+                }}
+                onClick={() => navigate(`/product/${p.id}`)}
+              >
+                <img
+                  src={IMAGE_URL + (p.images[0] || "/uploads/default.png")}
+                  alt={p.name}
+                  style={{
+                    width: "100%",
+                    height: "150px",
+                    objectFit: "cover",
+                    borderRadius: "6px",
+                    marginBottom: "10px",
+                  }}
+                />
+                <h4 style={{ fontSize: "1rem", marginBottom: "5px" }}>
+                  {p.name}
+                </h4>
+                <p style={{ color: "#666", fontSize: "0.9rem" }}>
+                  ${p.price.toFixed(2)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
