@@ -1,6 +1,7 @@
-const { gql } = require('apollo-server-express');
+import { gql } from 'apollo-server-express';
 
-const orderTypeDefs = gql`
+// Change 'const orderTypeDefs = gql`' and 'module.exports =' to a single 'export default'
+export default gql`
   type Order {
     id: ID!
     buyer: User!
@@ -41,5 +42,3 @@ const orderTypeDefs = gql`
     updateOrderStatus(id: ID!, status: OrderStatus!): Order
   }
 `;
-
-module.exports = orderTypeDefs;

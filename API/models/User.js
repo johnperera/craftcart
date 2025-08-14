@@ -1,44 +1,13 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  role: {
-    type: String,
-    enum: ['BUYER', 'ARTISAN', 'ADMIN'],
-    default: 'BUYER'
-  },
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['BUYER', 'ARTISAN', 'ADMIN'], default: 'BUYER' },
   profileImage: String,
-  products: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product'
-  }],
-  orders: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order'
-  }],
-  reviews: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Review'
-  }]
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
@@ -48,11 +17,30 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
+// Virtuals for relationships
+userSchema.virtual('products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'artisan'
+});
+userSchema.virtual('orders', {
+    ref: 'Order',
+    localField: '_id',
+    foreignField: 'buyer'
+});
+userSchema.virtual('reviews', {
+    ref: 'Review',
+    localField: '_id',
+    foreignField: 'user'
+});
+
+
 // Remove sensitive data when sending user object
 userSchema.methods.toJSON = function() {
-  const user = this.toObject();
-  delete user.password;
-  return user;
+  const userObject = this.toObject();
+  delete userObject.password;
+  return userObject;
 };
 
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+export default User;

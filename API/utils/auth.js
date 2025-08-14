@@ -1,6 +1,7 @@
-const jwt = require('jsonwebtoken');
+import jwt from 'jsonwebtoken';
 
-const verifyToken = (token) => {
+// Add the 'export' keyword before each function you want to use elsewhere
+export const verifyToken = (token) => {
   try {
     if (!token) return null;
     return jwt.verify(token, process.env.JWT_SECRET);
@@ -10,13 +11,8 @@ const verifyToken = (token) => {
   }
 };
 
-const createToken = (payload) => {
+export const createToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '1d'
   });
-};
-
-module.exports = {
-  verifyToken,
-  createToken
 };

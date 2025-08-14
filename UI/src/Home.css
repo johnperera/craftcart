@@ -52,3 +52,13 @@
 .action-button:hover {
   background-color: #2980b9;
 }
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.action-button:hover {
+  background-color: #000000;
+  color: #ffffff;
+}

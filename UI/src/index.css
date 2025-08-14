@@ -1,4 +1,26 @@
-/* Add to existing index.css */
+
+
+:root {
+  --bs-primary: #ef4100;
+  --bs-primary-rgb: 239, 65, 0;
+  --bs-dark: #000000;
+  --bs-body-color: #000000;
+}
+
+.btn-primary {
+  background-color: #ef4100 !important;
+  border-color: #ef4100 !important;
+  color: #fff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+  color: #fff !important;
+}
+
+
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -39,4 +61,13 @@
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 1rem;
+}
+
+.bg-active {
+  background-color: #ef4100 !important;
+  color: #ffffff !important;
+}
+.nav-link.text-dark:hover {
+  background-color: #f1f1f1;
+  color: #000000;
 }

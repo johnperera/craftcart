@@ -1,34 +1,42 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../../models/User');
-const { AuthenticationError } = require('apollo-server-express');
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { AuthenticationError, UserInputError } from "apollo-server-express";
+import User from "../../models/User.js";
 
-module.exports = {
+export default {
   Query: {
-    me: (_, __, { user }) => {
-      if (!user) throw new AuthenticationError('Not authenticated');
-      return User.findById(user.id)
-        .populate('products orders reviews');
+    me: async (_, __, { user }) => {
+      if (!user) {
+        throw new AuthenticationError(
+          "You must be logged in to perform this action."
+        );
+      }
+      return User.findById(user.id).populate("products orders reviews");
     },
-    user: (_, { id }) => User.findById(id)
-      .populate('products orders reviews'),
-    users: () => User.find().populate('products orders reviews')
+    user: (_, { id }) => User.findById(id).populate("products orders reviews"),
+    users: async () => {
+      return await User.find({}).populate("products orders reviews");
+    },
   },
 
   Mutation: {
     register: async (_, { input }) => {
       const { email, password, ...rest } = input;
-      
+
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        throw new Error('Email already in use');
+        throw new UserInputError(
+          "A user with this email address already exists.",
+          {
+            invalidArgs: ["email"],
+          }
+        );
       }
 
-      const hashedPassword = await bcrypt.hash(password, 12);
       const user = new User({
         ...rest,
         email,
-        password: hashedPassword
+        password, // Password will be hashed by the 'pre-save' hook in the model
       });
 
       await user.save();
@@ -36,7 +44,7 @@ module.exports = {
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: "1d" }
       );
 
       return { token, user };
@@ -47,33 +55,25 @@ module.exports = {
       const user = await User.findOne({ email });
 
       if (!user) {
-        throw new Error('Invalid credentials');
+        throw new AuthenticationError(
+          "Invalid credentials. Please check your email and password."
+        );
       }
 
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) {
-        throw new Error('Invalid credentials');
+        throw new AuthenticationError(
+          "Invalid credentials. Please check your email and password."
+        );
       }
 
       const token = jwt.sign(
         { id: user.id, email: user.email, role: user.role },
         process.env.JWT_SECRET,
-        { expiresIn: '1d' }
+        { expiresIn: "1d" }
       );
 
       return { token, user };
-    }
+    },
   },
-
-  User: {
-    products: (user) => {
-      return user.populate('products').execPopulate().then(u => u.products);
-    },
-    orders: (user) => {
-      return user.populate('orders').execPopulate().then(u => u.orders);
-    },
-    reviews: (user) => {
-      return user.populate('reviews').execPopulate().then(u => u.reviews);
-    }
-  }
 };

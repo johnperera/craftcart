@@ -1,45 +1,26 @@
-const { gql } = require('apollo-server-express');
+import mongoose from 'mongoose';
 
-const orderTypeDefs = gql`
-  type Order {
-    id: ID!
-    buyer: User!
-    items: [OrderItem]!
-    total: Float!
-    status: OrderStatus!
-    createdAt: String
-    updatedAt: String
-  }
+const categorySchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+  },
+}, {
+  timestamps: true
+});
 
-  type OrderItem {
-    product: Product!
-    quantity: Int!
-    priceAtPurchase: Float!
-  }
+// Virtual field to populate products associated with this category
+categorySchema.virtual('products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'category'
+});
 
-  enum OrderStatus {
-    PENDING
-    PROCESSING
-    SHIPPED
-    DELIVERED
-    CANCELLED
-  }
-
-  input OrderItemInput {
-    product: ID!
-    quantity: Int!
-  }
-
-  extend type Query {
-    orders: [Order]
-    order(id: ID!): Order
-    myOrders: [Order]
-  }
-
-  extend type Mutation {
-    createOrder(items: [OrderItemInput]!): Order
-    updateOrderStatus(id: ID!, status: OrderStatus!): Order
-  }
-`;
-
-module.exports = orderTypeDefs;
+const Category = mongoose.model('Category', categorySchema);
+export default Category;

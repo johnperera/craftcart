@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const reviewSchema = new mongoose.Schema({
   product: {
@@ -28,4 +28,7 @@ const reviewSchema = new mongoose.Schema({
 // Ensure one review per user per product
 reviewSchema.index({ product: 1, user: 1 }, { unique: true });
 
-module.exports = mongoose.model('Review', reviewSchema);
+const Review = mongoose.model('Review', reviewSchema);
+
+// Change 'module.exports =' to 'export default'
+export default Review;

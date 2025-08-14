@@ -7,6 +7,7 @@ import ArtisanDashboard from "./pages/ArtisanDashboard";
 import ProductDetails from "./pages/ProductDetails";
 import Login from "./pages/Login"; // Import Login page
 import Register from "./pages/Register"; // Import Register page
+import Cart from "./pages/Cart";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/products/:id" element={<ProductDetails />} />
         <Route path="/artisan" element={<ArtisanDashboard />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/register" element={<Register />} />
       </Routes>
     </>
