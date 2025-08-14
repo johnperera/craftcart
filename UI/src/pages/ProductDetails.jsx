@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+const GRAPHQL_ENDPOINT = "https://craftcart.onrender.com/graphql";
 const IMAGE_URL = "http://localhost:4000";
 
 const ProductDetails = () => {

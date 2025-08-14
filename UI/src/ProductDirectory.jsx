@@ -1,7 +1,7 @@
 import React from 'react';
 import ProductTable from './components/ProductTable';
 
-const API_URL = "http://localhost:4000/graphql";
+const API_URL = "https://craftcart.onrender.com/graphql";
 
 class ProductDirectory extends React.Component {
   constructor(props) {

@@ -62,7 +62,7 @@ const productInput = {
   images: [imageUrl], // Use the URL from the upload step
 };
 
-const res2 = await fetch('http://localhost:4000/graphql', {
+const res2 = await fetch('https://craftcart.onrender.com/graphql', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
   body: JSON.stringify({ query: mutation, variables: { input: productInput } }),
@@ -95,7 +95,7 @@ const updateInput = {
   images: [newImageUrl], // Use the new image URL, or keep the old one(s)
 };
 
-const res2 = await fetch('http://localhost:4000/graphql', {
+const res2 = await fetch('https://craftcart.onrender.com/graphql', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
   body: JSON.stringify({ query: mutation, variables: { id: productId, input: updateInput } }),

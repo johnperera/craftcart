@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+const GRAPHQL_ENDPOINT = "https://craftcart.onrender.com/graphql";
 const IMAGE_UPLOAD_URL = "http://localhost:4000/upload";
 
 const AdminProducts = () => {

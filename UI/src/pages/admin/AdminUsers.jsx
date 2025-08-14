@@ -17,7 +17,7 @@ const AdminUsers = () => {
   const token = localStorage.getItem("token");
 
   const sendGraphQLRequest = async (query, variables = {}) => {
-    const res = await fetch("http://localhost:4000/graphql", {
+    const res = await fetch("https://craftcart.onrender.com/graphql", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

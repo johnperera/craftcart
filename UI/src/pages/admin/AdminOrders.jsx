@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+const GRAPHQL_ENDPOINT = "https://craftcart.onrender.com/graphql";
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
