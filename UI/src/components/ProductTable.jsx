@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-const IMAGE_URL = "http://localhost:4000";
+const IMAGE_URL = "https://craftcart.onrender.com";
 
 const ProductTable = ({ products }) => {
   return (
@@ -24,6 +24,8 @@ const ProductTable = ({ products }) => {
             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)',
             display: 'flex',
             flexDirection: 'column',
+            maxWidth: '320px', 
+            margin: '0 auto',   
           }}
         >
           <img
