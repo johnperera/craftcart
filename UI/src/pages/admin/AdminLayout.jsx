@@ -5,7 +5,7 @@ import {
   FaBoxOpen,
   FaTags,
   FaUsers,
-  FaSignOutAlt,
+  FaSignOutAlt,FaShoppingBag
 } from "react-icons/fa";
 
 const AdminLayout = () => {
@@ -78,6 +78,11 @@ const AdminLayout = () => {
                 <li className="nav-item">
                   <NavLink to="/admin/users" className={linkClass}>
                     <FaUsers /> Users
+                  </NavLink>
+                </li>
+                <li className="nav-item">
+                  <NavLink to="/admin/orders" className={linkClass}>
+                    <FaShoppingBag /> Orders
                   </NavLink>
                 </li>
               </>
